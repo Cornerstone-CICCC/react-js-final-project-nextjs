@@ -1,0 +1,167 @@
+// Prisma Schema for StudyHub
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model with authentication
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String   // bcrypt hashed
+  name          String
+  avatarUrl     String?  @map("avatar_url")
+  refreshToken  String?  @map("refresh_token") // Store hashed refresh token
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  studyMemberships StudyMember[]
+  todos            Todo[]
+  messages         Message[]
+  attendances      Attendance[]
+  historyTodos     HistoryTodo[]
+  createdStudies   Study[]       @relation("CreatedBy")
+
+  @@map("users")
+}
+
+// Study model
+model Study {
+  id          String   @id @default(uuid())
+  name        String
+  inviteCode  String   @unique @map("invite_code")
+  currentGoal String   @default("") @map("current_goal")
+  currentWeek Int      @default(0) @map("current_week")
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdBy User          @relation("CreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  members   StudyMember[]
+  todos     Todo[]
+  schedules Schedule[]
+  messages  Message[]
+  history   WeeklyHistory[]
+
+  @@map("studies")
+}
+
+// Study membership (many-to-many)
+model StudyMember {
+  id       String   @id @default(uuid())
+  studyId  String   @map("study_id")
+  userId   String   @map("user_id")
+  role     String   @default("member") // "owner" | "member"
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  // Relations
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([studyId, userId])
+  @@map("study_members")
+}
+
+// Todo model
+model Todo {
+  id        String   @id @default(uuid())
+  studyId   String   @map("study_id")
+  userId    String   @map("user_id")
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("todos")
+}
+
+// Schedule model
+model Schedule {
+  id        String   @id @default(uuid())
+  studyId   String   @map("study_id")
+  title     String
+  date      String   // ISO date string
+  time      String   // HH:MM format
+  location  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  study       Study        @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  attendances Attendance[]
+
+  @@map("schedules")
+}
+
+// Attendance model
+model Attendance {
+  id         String @id @default(uuid())
+  scheduleId String @map("schedule_id")
+  userId     String @map("user_id")
+  status     String @default("pending") // "attending" | "not-attending" | "pending"
+
+  // Relations
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, userId])
+  @@map("attendance")
+}
+
+// Message model (for chat)
+model Message {
+  id        String   @id @default(uuid())
+  studyId   String   @map("study_id")
+  userId    String   @map("user_id")
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  study Study @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// Weekly history model
+model WeeklyHistory {
+  id         String   @id @default(uuid())
+  studyId    String   @map("study_id")
+  weekNumber Int      @map("week_number")
+  weekStart  String   @map("week_start") // ISO date string
+  weekEnd    String   @map("week_end")   // ISO date string
+  goal       String   @default("")
+  archivedAt DateTime @default(now()) @map("archived_at")
+
+  // Relations
+  study Study         @relation(fields: [studyId], references: [id], onDelete: Cascade)
+  todos HistoryTodo[]
+
+  @@map("weekly_history")
+}
+
+// History todos (archived todos)
+model HistoryTodo {
+  id        String  @id @default(uuid())
+  historyId String  @map("history_id")
+  userId    String  @map("user_id")
+  title     String
+  completed Boolean @default(false)
+
+  // Relations
+  history WeeklyHistory @relation(fields: [historyId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("history_todos")
+}
