@@ -179,8 +179,8 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
       data: { refreshToken: null },
     });
 
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    res.clearCookie('accessToken', { path: '/', sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const, secure: process.env.NODE_ENV === 'production' });
+    res.clearCookie('refreshToken', { path: '/', sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const, secure: process.env.NODE_ENV === 'production' });
 
     res.json({ message: 'Logout successful' });
   } catch (error: unknown) {
