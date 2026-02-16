@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { api } from '../lib/api';
+import { api, clearTokens } from '../lib/api';
 
 interface User {
   id: string;
@@ -30,11 +30,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function checkAuth() {
     try {
+      // On page refresh, accessToken (in memory) is lost.
+      // Try to restore session using refreshToken from localStorage.
+      const hasRefreshToken = !!localStorage.getItem('refreshToken');
+      if (hasRefreshToken) {
+        await api.refreshToken();
+      }
+
       const response = await api.getCurrentUser();
       setUser(response.user);
-    } catch (error) {
+    } catch {
       // Not authenticated or token expired
       setUser(null);
+      clearTokens();
     } finally {
       setLoading(false);
     }
@@ -51,7 +59,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch {
+      // Even if server logout fails, clear local state
+    }
+    clearTokens();
     setUser(null);
   }
 

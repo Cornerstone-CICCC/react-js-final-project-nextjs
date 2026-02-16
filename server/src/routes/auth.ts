@@ -66,7 +66,7 @@ router.post('/signup', async (req: Request, res: Response) => {
     res.cookie('accessToken', accessToken, accessTokenCookieOptions);
     res.cookie('refreshToken', refreshToken, refreshTokenCookieOptions);
 
-    res.status(201).json({ message: 'User created successfully', user });
+    res.status(201).json({ message: 'User created successfully', user, accessToken, refreshToken });
   } catch (error: unknown) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Failed to create user' });
@@ -109,6 +109,8 @@ router.post('/login', async (req: Request, res: Response) => {
 
     res.json({
       message: 'Login successful',
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -128,7 +130,7 @@ router.post('/login', async (req: Request, res: Response) => {
  */
 router.post('/refresh', async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.body?.refreshToken || req.cookies?.refreshToken;
 
     if (!refreshToken) {
       return res.status(401).json({ error: 'Refresh token required' });
@@ -161,7 +163,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
     res.cookie('accessToken', newAccessToken, accessTokenCookieOptions);
     res.cookie('refreshToken', newRefreshToken, refreshTokenCookieOptions);
 
-    res.json({ message: 'Token refreshed successfully' });
+    res.json({ message: 'Token refreshed successfully', accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch (error: unknown) {
     console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Failed to refresh token' });

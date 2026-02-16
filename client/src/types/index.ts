@@ -91,6 +91,8 @@ export interface WeeklyHistory {
 export interface AuthResponse {
   message: string;
   user: User;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface StudiesResponse {

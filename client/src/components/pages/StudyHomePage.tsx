@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { api } from "../../lib/api";
 import { getWeekDateRange } from "../../lib/week";
-import { formatDateKR } from "../../lib/utils";
+import { formatDateShort } from "../../lib/utils";
 import { toast } from "sonner";
 import { LoadingSpinner, UserAvatar } from "../common";
 import type { Study, WeeklyHistory } from "../../types";
@@ -228,8 +228,8 @@ function GoalHeader({
           WEEKLY GOAL
         </h3>
         <p className="text-xs text-white/20 font-light">
-          Week {weekNumber} ({formatDateKR(weekRange.start)} -{" "}
-          {formatDateKR(weekRange.end)})
+          Week {weekNumber} ({formatDateShort(weekRange.start)} -{" "}
+          {formatDateShort(weekRange.end)})
         </p>
       </div>
     </div>
@@ -321,7 +321,7 @@ function RecentArchives({
 
       {history.length === 0 ? (
         <p className="text-sm text-white/30 font-light">
-          아직 아카이브된 주차가 없습니다.
+          No archived weeks yet.
         </p>
       ) : (
         <div className="space-y-2">
@@ -333,8 +333,8 @@ function RecentArchives({
             >
               <div className="text-sm text-white">Week {record.weekNumber}</div>
               <div className="text-xs text-white/40">
-                {formatDateKR(record.weekStart)} -{" "}
-                {formatDateKR(record.weekEnd)}
+                {formatDateShort(record.weekStart)} -{" "}
+                {formatDateShort(record.weekEnd)}
               </div>
             </button>
           ))}

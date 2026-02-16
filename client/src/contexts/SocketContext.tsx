@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import { getAccessToken } from '../lib/api';
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5001';
 
@@ -18,7 +19,6 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) {
-      // Disconnect socket if user logs out
       if (socket) {
         socket.disconnect();
         setSocket(null);
@@ -27,16 +27,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Get access token from cookie (it's httpOnly so we can't access it)
-    // Instead, we'll use the token that's automatically sent with the socket handshake
-    // The server will verify it from the cookie
+    const token = getAccessToken();
+    if (!token) return;
 
     const newSocket = io(SOCKET_URL, {
-      auth: {
-        // Send a dummy token, the server will use the httpOnly cookie
-        token: 'from-cookie',
-      },
-      withCredentials: true, // Important: send cookies
+      auth: { token },
+      withCredentials: true,
     });
 
     newSocket.on('connect', () => {

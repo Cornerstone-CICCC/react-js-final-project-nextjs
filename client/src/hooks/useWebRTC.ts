@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react';
-import { toast } from 'sonner';
-import type { Socket } from 'socket.io-client';
+import { useState, useRef, useCallback } from "react";
+import { toast } from "sonner";
+import type { Socket } from "socket.io-client";
 
 interface RemoteStreamEntry {
   socketId: string;
@@ -23,7 +23,9 @@ export function useWebRTC(socket: Socket | null) {
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [mediaInitialized, setMediaInitialized] = useState(false);
-  const [remoteParticipants, setRemoteParticipants] = useState<MeetingParticipant[]>([]);
+  const [remoteParticipants, setRemoteParticipants] = useState<
+    MeetingParticipant[]
+  >([]);
   const [remoteStreams, setRemoteStreams] = useState<RemoteStreamEntry[]>([]);
 
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -32,20 +34,25 @@ export function useWebRTC(socket: Socket | null) {
 
   // --- Participant management ---
 
-  const upsertRemoteParticipant = useCallback((socketId: string, userId?: string) => {
-    setRemoteParticipants((prev) => {
-      const index = prev.findIndex((p) => p.socketId === socketId);
-      if (index >= 0) {
-        const next = [...prev];
-        next[index] = { socketId, userId: userId ?? next[index].userId };
-        return next;
-      }
-      return [...prev, { socketId, userId }];
-    });
-  }, []);
+  const upsertRemoteParticipant = useCallback(
+    (socketId: string, userId?: string) => {
+      setRemoteParticipants((prev) => {
+        const index = prev.findIndex((p) => p.socketId === socketId);
+        if (index >= 0) {
+          const next = [...prev];
+          next[index] = { socketId, userId: userId ?? next[index].userId };
+          return next;
+        }
+        return [...prev, { socketId, userId }];
+      });
+    },
+    [],
+  );
 
   const removeRemoteParticipant = useCallback((socketId: string) => {
-    setRemoteParticipants((prev) => prev.filter((p) => p.socketId !== socketId));
+    setRemoteParticipants((prev) =>
+      prev.filter((p) => p.socketId !== socketId),
+    );
   }, []);
 
   const upsertRemoteStream = useCallback(
@@ -54,7 +61,11 @@ export function useWebRTC(socket: Socket | null) {
         const index = prev.findIndex((e) => e.socketId === socketId);
         if (index >= 0) {
           const next = [...prev];
-          next[index] = { socketId, stream, userId: userId ?? next[index].userId };
+          next[index] = {
+            socketId,
+            stream,
+            userId: userId ?? next[index].userId,
+          };
           return next;
         }
         return [...prev, { socketId, stream, userId }];
@@ -75,15 +86,17 @@ export function useWebRTC(socket: Socket | null) {
 
     const audioTrack = localStream?.getAudioTracks()[0] ?? null;
     const videoTrack =
-      screenStream?.getVideoTracks()[0] ?? localStream?.getVideoTracks()[0] ?? null;
+      screenStream?.getVideoTracks()[0] ??
+      localStream?.getVideoTracks()[0] ??
+      null;
 
-    const audioSender = pc.getSenders().find((s) => s.track?.kind === 'audio');
+    const audioSender = pc.getSenders().find((s) => s.track?.kind === "audio");
     if (audioTrack && localStream) {
       if (audioSender) void audioSender.replaceTrack(audioTrack);
       else pc.addTrack(audioTrack, localStream);
     }
 
-    const videoSender = pc.getSenders().find((s) => s.track?.kind === 'video');
+    const videoSender = pc.getSenders().find((s) => s.track?.kind === "video");
     const videoSourceStream = screenStream ?? localStream;
     if (videoTrack && videoSourceStream) {
       if (videoSender) void videoSender.replaceTrack(videoTrack);
@@ -133,7 +146,7 @@ export function useWebRTC(socket: Socket | null) {
       if (existing) return existing;
 
       const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
 
       peerConnectionsRef.current.set(remoteSocketId, pc);
@@ -141,7 +154,7 @@ export function useWebRTC(socket: Socket | null) {
 
       pc.onicecandidate = (event) => {
         if (!event.candidate) return;
-        socket.emit('webrtc-ice-candidate', {
+        socket.emit("webrtc-ice-candidate", {
           to: remoteSocketId,
           candidate: event.candidate.toJSON(),
         });
@@ -154,13 +167,13 @@ export function useWebRTC(socket: Socket | null) {
 
       pc.onconnectionstatechange = () => {
         const state = pc.connectionState;
-        if (state === 'failed' || state === 'closed') {
+        if (state === "failed" || state === "closed") {
           cleanupPeerConnection(remoteSocketId);
         }
-        if (state === 'disconnected') {
+        if (state === "disconnected") {
           setTimeout(() => {
             const current = peerConnectionsRef.current.get(remoteSocketId);
-            if (current?.connectionState === 'disconnected') {
+            if (current?.connectionState === "disconnected") {
               cleanupPeerConnection(remoteSocketId);
             }
           }, 5000);
@@ -169,7 +182,12 @@ export function useWebRTC(socket: Socket | null) {
 
       return pc;
     },
-    [attachCurrentTracksToPeer, cleanupPeerConnection, socket, upsertRemoteStream],
+    [
+      attachCurrentTracksToPeer,
+      cleanupPeerConnection,
+      socket,
+      upsertRemoteStream,
+    ],
   );
 
   const createOfferToPeer = useCallback(
@@ -180,7 +198,7 @@ export function useWebRTC(socket: Socket | null) {
         if (!pc) return;
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        socket.emit('webrtc-offer', { to: remoteSocketId, offer });
+        socket.emit("webrtc-offer", { to: remoteSocketId, offer });
       } catch (error) {
         console.error(`Failed to create offer for ${remoteSocketId}:`, error);
       }
@@ -195,13 +213,51 @@ export function useWebRTC(socket: Socket | null) {
       if (localStreamRef.current) {
         localStreamRef.current.getTracks().forEach((t) => t.stop());
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+      } catch {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: true,
+          });
+          toast.info("Camera not available. Audio only.");
+        } catch {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: false,
+            });
+            toast.info("Microphone not available. Video only.");
+          } catch (finalError) {
+            throw finalError;
+          }
+        }
+      }
+
       localStreamRef.current = stream;
       setIsMicOn(Boolean(stream.getAudioTracks()[0]?.enabled));
       setIsVideoOn(Boolean(stream.getVideoTracks()[0]?.enabled));
       syncTracksToAllPeers();
-    } catch {
-      toast.error('Camera/Microphone access failed. Check browser permissions.');
+    } catch (error) {
+      const err = error as DOMException;
+      if (err.name === "NotAllowedError") {
+        toast.error(
+          "camera/microphone access denied. Please allow permissions in your browser settings (click the lock icon next to the URL).",
+        );
+      } else if (err.name === "NotFoundError") {
+        toast.error("Camera or microphone not found.");
+      } else if (err.name === "NotReadableError") {
+        toast.error("Camera/microphone is in use by another app.");
+      } else {
+        toast.error(`Failed to access media: ${err.message || err.name}`);
+      }
+      console.error("getUserMedia error:", err.name, err.message);
       setIsMicOn(false);
       setIsVideoOn(false);
     } finally {
@@ -247,16 +303,19 @@ export function useWebRTC(socket: Socket | null) {
       return;
     }
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false,
+      });
       const screenTrack = stream.getVideoTracks()[0];
-      if (!screenTrack) throw new Error('No screen video track available');
+      if (!screenTrack) throw new Error("No screen video track available");
 
       screenStreamRef.current = stream;
       screenTrack.onended = () => stopScreenShare();
       setIsScreenSharing(true);
       syncTracksToAllPeers();
     } catch {
-      toast.error('Screen sharing failed.');
+      toast.error("Screen sharing failed.");
     }
   }, [isScreenSharing, stopScreenShare, syncTracksToAllPeers]);
 
@@ -266,8 +325,9 @@ export function useWebRTC(socket: Socket | null) {
     async (existing: Array<string | ExistingParticipant>) => {
       for (const payload of existing) {
         const participant =
-          typeof payload === 'string' ? { socketId: payload } : payload;
-        if (!participant.socketId || participant.socketId === socket?.id) continue;
+          typeof payload === "string" ? { socketId: payload } : payload;
+        if (!participant.socketId || participant.socketId === socket?.id)
+          continue;
         upsertRemoteParticipant(participant.socketId, participant.userId);
         await createOfferToPeer(participant.socketId, participant.userId);
       }
@@ -301,9 +361,9 @@ export function useWebRTC(socket: Socket | null) {
         await pc.setRemoteDescription(data.offer);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit('webrtc-answer', { to: data.from, answer });
+        socket.emit("webrtc-answer", { to: data.from, answer });
       } catch (error) {
-        console.error('Failed to handle WebRTC offer:', error);
+        console.error("Failed to handle WebRTC offer:", error);
       }
     },
     [ensurePeerConnection, socket, upsertRemoteParticipant],
@@ -316,7 +376,7 @@ export function useWebRTC(socket: Socket | null) {
         const pc = peerConnectionsRef.current.get(data.from);
         if (pc) await pc.setRemoteDescription(data.answer);
       } catch (error) {
-        console.error('Failed to handle WebRTC answer:', error);
+        console.error("Failed to handle WebRTC answer:", error);
       }
     },
     [],
@@ -329,7 +389,7 @@ export function useWebRTC(socket: Socket | null) {
         const pc = peerConnectionsRef.current.get(data.from);
         if (pc) await pc.addIceCandidate(data.candidate);
       } catch (error) {
-        console.error('Failed to handle ICE candidate:', error);
+        console.error("Failed to handle ICE candidate:", error);
       }
     },
     [],

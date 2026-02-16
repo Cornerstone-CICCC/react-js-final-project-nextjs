@@ -1,4 +1,12 @@
-import { Mic, MicOff, Video, VideoOff, Monitor, MonitorOff, PhoneOff } from 'lucide-react';
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  Monitor,
+  MonitorOff,
+  PhoneOff,
+} from "lucide-react";
 
 interface MeetingControlsProps {
   isMicOn: boolean;
@@ -25,14 +33,14 @@ export function MeetingControls({
         active={isMicOn}
         activeIcon={<Mic className="w-6 h-6" />}
         inactiveIcon={<MicOff className="w-6 h-6" />}
-        title={isMicOn ? '마이크 끄기' : '마이크 켜기'}
+        title={isMicOn ? "Mute microphone" : "Unmute microphone"}
         onClick={onToggleMic}
       />
       <ControlButton
         active={isVideoOn}
         activeIcon={<Video className="w-6 h-6" />}
         inactiveIcon={<VideoOff className="w-6 h-6" />}
-        title={isVideoOn ? '비디오 끄기' : '비디오 켜기'}
+        title={isVideoOn ? "Turn off video" : "Turn on video"}
         onClick={onToggleVideo}
       />
       <ControlButton
@@ -41,7 +49,7 @@ export function MeetingControls({
         inactiveIcon={<MonitorOff className="w-6 h-6" />}
         activeColor="bg-gray-700 hover:bg-gray-600"
         inactiveColor="bg-blue-600 hover:bg-blue-700"
-        title={isScreenSharing ? '화면 공유 중지' : '화면 공유'}
+        title={isScreenSharing ? "Stop screen sharing" : "Start screen sharing"}
         onClick={onToggleScreen}
       />
 
@@ -52,7 +60,7 @@ export function MeetingControls({
         className="px-6 h-14 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center gap-2 font-semibold transition-all"
       >
         <PhoneOff className="w-5 h-5" />
-        <span>나가기</span>
+        <span>Leave Meeting</span>
       </button>
     </div>
   );
@@ -64,8 +72,8 @@ function ControlButton({
   inactiveIcon,
   title,
   onClick,
-  activeColor = 'bg-gray-700 hover:bg-gray-600',
-  inactiveColor = 'bg-red-600 hover:bg-red-700',
+  activeColor = "bg-gray-700 hover:bg-gray-600",
+  inactiveColor = "bg-red-600 hover:bg-red-700",
 }: {
   active: boolean;
   activeIcon: React.ReactNode;

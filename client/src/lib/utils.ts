@@ -26,10 +26,10 @@ export function getUserColor(index?: number, userId?: string): string {
 }
 
 /**
- * Format an ISO date string to Korean short date (e.g., "2월 15일")
+ * Format an ISO date string to short date (e.g., "Feb 15")
  */
-export function formatDateKR(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString('ko-KR', {
+export function formatDateShort(isoDate: string): string {
+  return new Date(isoDate).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   });
@@ -39,7 +39,7 @@ export function formatDateKR(isoDate: string): string {
  * Format a timestamp to HH:MM (24h)
  */
 export function formatTime(timestamp: string): string {
-  return new Date(timestamp).toLocaleTimeString('ko-KR', {
+  return new Date(timestamp).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,

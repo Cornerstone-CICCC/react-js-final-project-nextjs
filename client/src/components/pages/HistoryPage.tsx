@@ -3,7 +3,7 @@ import { useParams } from 'react-router';
 import { CheckCircle2, Circle, Clock, Trash2, Archive } from 'lucide-react';
 import { api } from '../../lib/api';
 import { getWeekDateRange } from '../../lib/week';
-import { formatDateKR } from '../../lib/utils';
+import { formatDateShort } from '../../lib/utils';
 import { toast } from 'sonner';
 import { LoadingSpinner, EmptyState, PageHeader, UserAvatar } from '../common';
 import type { Study, WeeklyHistory, HistoryTodo, StudyMember } from '../../types';
@@ -79,7 +79,7 @@ export function HistoryPage() {
         <PageHeader
           label="HISTORY"
           value={history.length}
-          subtitle={`Current Week ${currentWeekNumber} (${formatDateKR(currentWeekRange.start)} - ${formatDateKR(currentWeekRange.end)})`}
+          subtitle={`Current Week ${currentWeekNumber} (${formatDateShort(currentWeekRange.start)} - ${formatDateShort(currentWeekRange.end)})`}
           action={
             <button
               onClick={handleArchive}
@@ -94,7 +94,7 @@ export function HistoryPage() {
 
         {!canArchive && (
           <p className="text-xs text-white/30 mb-8">
-            Archive하려면 이번 주 목표 또는 TODO가 최소 1개 필요합니다.
+            You need at least 1 goal or TODO this week to archive.
           </p>
         )}
 
@@ -144,7 +144,7 @@ function HistoryCard({ record, members, onDelete }: {
           <div>
             <div className="text-2xl font-light text-white mb-1">Week {record.weekNumber}</div>
             <div className="text-xs text-white/40 font-light tracking-wide">
-              {formatDateKR(record.weekStart)} - {formatDateKR(record.weekEnd)}
+              {formatDateShort(record.weekStart)} - {formatDateShort(record.weekEnd)}
             </div>
           </div>
         </div>

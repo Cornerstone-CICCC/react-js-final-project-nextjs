@@ -257,7 +257,8 @@ export function MeetingPage() {
           <div>
             <h1 className="font-bold text-white">{study.name}</h1>
             <p className="text-sm text-gray-400">
-              {allParticipants.length}명 참여중
+              {allParticipants.length} participant
+              {allParticipants.length !== 1 && "s"}
             </p>
           </div>
         </div>
@@ -267,14 +268,14 @@ export function MeetingPage() {
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
           >
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">참가자</span>
+            <span className="hidden sm:inline">Participants</span>
           </button>
           <button
             onClick={() => setShowChat(!showChat)}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors flex items-center gap-2"
           >
             <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">채팅</span>
+            <span className="hidden sm:inline">Chatting</span>
           </button>
         </div>
       </div>
